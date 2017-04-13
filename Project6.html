@@ -1,0 +1,333 @@
+<html><head>
+	<title>Turtle Attack!</title>
+	<meta charset="UTF-8">
+</head>
+<body>
+<br>
+<canvas id="myCanvas" width="500" height="500" style="border:1px solid #cccccc;"></canvas>
+
+<script type="text/javascript">
+	let bird1_image, bird2_image, tube1_image, tube2_image, hand1_image, hand2_image, chuck_image;
+	//loading images first
+   try{
+    bird1_image = new Image();
+    bird1_image.src = "bird1.png";
+	bird2_image = new Image();
+	bird2_image.src = "bird2.png";	
+	tube1_image = new Image();
+	tube1_image.src = "tube_up.png";
+	tube2_image = new Image();
+	tube2_image.src = "tube_down.png";
+	hand1_image = new Image();
+	hand1_image.src = "hand1.png";
+	hand2_image = new Image();
+	hand2_image.src = "hand2.png";
+	chuck_image = new Image();
+	chuck_image.src = "chuck_norris.png"
+    }
+    catch(e){
+    	console.log("e");
+    }
+
+function Model()
+{
+	this.bird = new Bird(this);   //declaring variables
+	//.tube = new Tube();
+	this.Tubes = [];
+	//this.Tubes.push(this.tube)
+	this.tubecount = 0;
+
+
+}
+
+
+Model.prototype.update = function()
+{
+	this.bird.update(); //modularity
+	this.tubecount++;
+	if(this.tubecount > ((Math.random() *10) + 15)){ //created tube at random intervals between 10 and 25
+       this.newT = new Tube();
+       this.Tubes.push(this.newT);
+       this.tubecount = 0;
+	}
+	for(let x = 0; x < this.Tubes.length; x++){ //updates through a list of tubes
+		//let itTube = this.Tubes[x];
+		//console.log(this.Tubes[x]);
+		if(doesCollide(this.bird, this.Tubes[x]) && this.bird.upCount > 15){
+				this.bird.energy = this.bird.energy - 20; 
+				this.bird.upCount = 0; //checks collision of tubes
+		}
+
+		if(this.Tubes[x].update()){ //removes tubes as they leave screen
+			this.Tubes.splice(x, 1); //removes tube[x] if true
+		}
+
+	}
+
+
+
+}
+
+function doesCollide(a, b)
+{
+			if(a.x + a.imW < b.x) // right -> left collision
+				return false;
+			if(a.x > b.x + b.imW) // left -> right collision
+				return false;
+			if(a.y + a.imH < b.y) // bottom -> top collision
+				return false;
+			if(a.y > b.y + b.imH) // top -> bottom collision
+				return false;
+			//console.log(b.x);
+			//console.log(a.x + a.imW);
+			//console.log(a.x);
+			//console.log(b.x + b.imW);
+			//console.log(a.y);
+			//console.log(b.y + b.imH);
+			//console.log(b.y);
+			//console.log(a.y + a.imH);
+			
+			console.log("HIT!");
+			return true;
+
+}
+
+model.prototype.rClick = function()
+{
+	this.chuck
+}
+
+
+
+function Hand(bird){
+	this.bird = bird;
+
+	this.caught = false; //says bird and hand are on each other
+	this.x = 10;
+	this.y = 550;
+	this.imW = hand1_image.width;
+	this.imW = hand1_image.height;
+    
+}
+
+Hand.prototype.update = function(){
+	
+	if(this.caught == false){
+       this.x= (this.bird.x + this.x)/2; //brings hand to bird
+       this.y= (this.bird.y + this.y)/2;
+       }
+    if(this.caught == true){
+    	this.x += -5; //takes bird away
+    	this.y += 5;
+    }
+    if(this.x <= -100){
+    	alert("Game Over");
+    }
+
+	return false;
+
+}
+
+
+function Bird(model)
+{
+	this.model = model;
+	this.x = 20;
+	this.y = 100;
+	this.v = 5.5;
+	this.energy = 90;
+	this.isDead = false;
+	this.eCount = 0;
+	this.counter = 0;
+	this.upCount = 0;
+	bird1_image.height = 57;
+	bird1_image.width = 64;
+	this.imH = bird1_image.height;
+	this.imW = bird1_image.width;
+	this.hand = new Hand(this);
+	this.handcreated = false;
+	//console.log(bird1_image.height);
+	//console.log(bird1_image.width);
+	
+}
+
+Bird.prototype.update = function(){
+    this.eCount++;
+    this.counter++;
+    this.upCount++;
+        //console.log(this);
+	if(this.isDead == false){
+         this.v = this.v + 0.4;
+         this.y = this .y + this.v;
+         
+     }
+     if(this.y > 500){ //removes energy if below bottom
+        this.energy -= 10;
+     }
+                
+     if(this.energy < 90){ // adds energy back
+           if(this.eCount > 6){
+                        this.energy++;
+                        this.eCount = 0;
+            }
+      }
+      if(this.energy <= 0 && this.handcreated == false) //creates hand once
+      {
+      	this.isDead = true;
+      	this.handcreated = true;
+
+      }
+        if(this.isDead == true){
+        	
+        	this.d_update();
+        	if(this.hand.caught){ //bird is drug away
+        		this.x += -5;
+        		this.y += 5;
+        	}
+
+        }
+      
+      if(this.y < 0){   // creates a celieng 
+      	this.y = 0;
+      	this.v = 0;
+      }        
+            
+
+              return false; 
+}
+
+Bird.prototype.flap = function(){
+	this.v = this.v - 7; //flaps the bird
+	this.y = this.y - this.v;
+	this.counter = 0;
+
+}
+
+
+Bird.prototype.d_update = function(){
+	this.hand.update(); //updates the hand cordinates
+	if(doesCollide(this, this.hand)){
+		this.hand.caught = true;
+	}
+}
+
+
+function Tube(){
+	this.x = 600;
+	this.upDown = Math.random() > .5;
+    if(this.upDown){
+		this.y = ((Math.random() * 250) + 250);// creates tube randomness
+		
+    }
+    if(!this.upDown){
+    	this.y = ((Math.random()* 250) - 300);
+    }
+    this.movement = -12;
+    this.ymove = 0;
+    this.imH = tube1_image.height;
+    this.imW = tube1_image.width;
+	
+}
+
+Tube.prototype.update = function(){
+	this.x += this.movement; //updates movement
+	this.y += this.ymove;
+	if(this.x < -50){
+		return true;
+	}
+	return false;
+}
+
+
+
+function View(model)
+{
+	this.model = model;
+	this.canvas = document.getElementById("myCanvas");
+	
+}
+
+View.prototype.update = function()
+{
+	let ctx = this.canvas.getContext("2d");
+	ctx.clearRect(0, 0, 500, 500);
+
+	if(this.model.bird.counter > 10){
+		ctx.drawImage(bird1_image, this.model.bird.x, this.model.bird.y);
+	}
+	else if(this.model.bird.counter <= 10){
+		ctx.drawImage(bird2_image, this.model.bird.x, this.model.bird.y);
+	}	
+    for(let t = 0; t < this.model.Tubes.length; t++){
+    	//let dTube = this.model.Tubes[t];
+    	if(this.model.Tubes[t].upDown){
+    		ctx.drawImage(tube1_image, this.model.Tubes[t].x, this.model.Tubes[t].y);
+    	}
+    	else if(!this.model.Tubes[t].upDown){
+    		ctx.drawImage(tube2_image, this.model.Tubes[t].x, this.model.Tubes[t].y);
+    	}
+    }
+
+    if( this.model.bird.isDead && this.model.bird.hand.caught){
+    	ctx.drawImage(hand2_image, this.model.bird.hand.x, this.model.bird.hand.y);
+    }
+    else if(this.model.bird.isDead && this.model.bird.hand.caught == false){
+    	ctx.drawImage(hand1_image, this.model.bird.hand.x, this.model.bird.hand.y);
+    }
+}
+
+
+
+
+//array of tubes
+//array of chucks
+
+function Controller(model, view)
+{
+	this.model = model;
+	this.view = view;
+	let self = this;
+	this.view.canvas.addEventListener("click", function(event) { self.onClick(event); });
+	this.view.canvas.addEventListener(
+		"contextmenu",
+		function(event) {
+			event.preventDefault();
+			self.onRightClick(event);
+			return false;
+		}
+		false
+	);
+}
+
+Controller.prototype.onClick = function(event)
+{
+	
+	this.model.bird.flap();
+}
+
+
+
+
+
+function Game()
+{
+	this.model = new Model();
+	this.view = new View(this.model);
+	this.controller = new Controller(this.model, this.view);
+}
+
+Game.prototype.onTimer = function()
+{
+	this.model.update();
+	this.view.update();
+}
+
+
+
+let game = new Game();
+let timer = setInterval(function() { game.onTimer(); }, 40);
+
+</script>
+
+
+</body></html>
